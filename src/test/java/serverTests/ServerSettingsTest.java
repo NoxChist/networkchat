@@ -1,10 +1,9 @@
 package serverTests;
 
-import client.ClientSettings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
-import server.ServerSettings;
+import server.pack.ServerSettings;
 
 public class ServerSettingsTest {
     @ParameterizedTest

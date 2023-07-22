@@ -1,6 +1,6 @@
-package client;
+package client.pack;
 
-import server.ServerCommand;
+import server.pack.ServerCommand;
 
 import java.io.BufferedReader;
 import java.io.IOException;

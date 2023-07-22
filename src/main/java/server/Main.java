@@ -1,9 +1,12 @@
 package server;
 
+import server.pack.Server;
+
 import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        Server.run();
+        Server server = new Server();
+        server.start();
     }
 }

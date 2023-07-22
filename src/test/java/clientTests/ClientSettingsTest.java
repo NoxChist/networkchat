@@ -1,6 +1,6 @@
 package clientTests;
 
-import client.ClientSettings;
+import client.pack.ClientSettings;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;

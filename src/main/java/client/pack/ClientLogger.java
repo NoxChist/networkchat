@@ -1,4 +1,4 @@
-package client;
+package client.pack;
 
 import tools.Logger;
 
