@@ -10,19 +10,19 @@ public class Server {
     private static String path = "src/main/resources/server";
     private static String settingsFileName = "settings.csv";
     ////////////////////////////////////////////////////////
-
     private ServerSettings settings;
     private ServerSocket server;
     private ServerLogger logger;
     private int cnt;
     private ConcurrentHashMap<Integer, ClientChannel> channelMap;
 
-    public Server () {
+    public Server() {
         settings = ServerSettings.getSettingsFromCsv(path, settingsFileName);
-        try{
+        try {
             server = new ServerSocket(settings.getPort());
             cnt = 0;
             channelMap = new ConcurrentHashMap<>();
+            ClientChannel.setChannelMap(channelMap);
             logger = ServerLogger.getInstance();
             System.out.println("Server started " + settings.getPort());
             logger.log("[SYSTEM]", new Date(), String.format("Server started on port %d", settings.getPort()));
@@ -39,14 +39,16 @@ public class Server {
 
     public void start() {
         while (true) {
-            try{
+            try {
                 Socket clientSocket = server.accept();
                 cnt++;
-                channelMap.put(cnt, new ClientChannel(cnt, clientSocket));
-            } catch (IOException ex){
+                ClientChannel channel = new ClientChannel(cnt, clientSocket);
+                channel.start();
+                channelMap.put(cnt, channel);
+            } catch (IOException ex) {
                 ex.printStackTrace();
                 System.out.println("Error");
-                logger.log("[ERROR]", new Date(),ex.getMessage());
+                logger.log("[ERROR]", new Date(), ex.getMessage());
             }
         }
     }

@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Client {
     private static final String STOP = "/exit";
@@ -18,22 +19,20 @@ public class Client {
     private ClientLogger logger;
     private ClientSettings settings;
     private Socket clientSocket;
-    private Scanner userInput;
+    private Scanner scanner;
     private PrintWriter out;
     private BufferedReader in;
-    boolean onLine;
+    AtomicBoolean onLine;
 
     public Client() throws IOException {
         settings = ClientSettings.getSettingsFromCsv(path, settingsFileName);
-        userInput = new Scanner(System.in);
+        scanner = new Scanner(System.in);
         clientSocket = new Socket(settings.getHost(), settings.getPort());
-        onLine = true;
+        onLine = new AtomicBoolean(true);
         logger = new ClientLogger();
-        out = new PrintWriter(clientSocket.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        System.out.println(in.readLine());
-        out.println(userInput.nextLine());
-        System.out.println(in.readLine());
+    }
+
+    public void start() {
         new ReadMsg().start();
         new WriteMsg().start();
     }
@@ -43,19 +42,31 @@ public class Client {
         public void run() {
             String msg;
             try {
-                while (onLine) {
+                in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                System.out.println(in.readLine());
+                System.out.println(in.readLine());
+                while (onLine.get()) {
                     msg = in.readLine();
                     if (msg != null && msg.equals(ServerCommand.STOP.toString())) {
-                        onLine = false;
+                        onLine.getAndSet(false);
                         System.out.println("Вы покинули чат.");
-                        logger.log(new Date(), "Вы покинули чат.");
+                        logger.log(new Date(), "Вы покинули чат");
                         break;
                     }
                     System.out.println(msg);
                     logger.log(msg);
                 }
             } catch (IOException e) {
+                e.printStackTrace();
                 System.out.println("Тут херня какая-то");
+            } finally {
+                try {
+                    onLine.getAndSet(false);
+                    in.close();
+                    out.close();
+                    clientSocket.close();
+                } catch (IOException e) {
+                }
             }
         }
     }
@@ -63,17 +74,21 @@ public class Client {
     public class WriteMsg extends Thread {
         @Override
         public void run() {
-            while (onLine) {
-                String userMsg;
-                userMsg = userInput.nextLine();
-                if (userMsg.equals(STOP)) {
+            try {
+                out = new PrintWriter(clientSocket.getOutputStream(), true);
+                out.println(scanner.nextLine());
+                while (onLine.get()) {
+                    String userMsg;
+                    userMsg = scanner.nextLine();
                     out.println(userMsg);
 
-                    break;
-                } else {
-                    out.println(userMsg);
+                    logger.log(new Date(), "Вы", userMsg);
+                    if (userMsg.equals(STOP)) {
+                        onLine.set(false);
+                    }
                 }
-                logger.log(new Date(), "Вы", userMsg);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

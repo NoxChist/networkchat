@@ -7,10 +7,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientChannel extends Thread {
     private static final String STOP = "/exit";
     private static SimpleDateFormat dataF = new SimpleDateFormat("HH:mm");
+    private static ConcurrentHashMap<Integer, ClientChannel> channelMap;
     private int id;
     private String name;
     private Socket socket;
@@ -22,7 +24,10 @@ public class ClientChannel extends Thread {
         this.socket = socket;
         out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        start();
+    }
+
+    public static void setChannelMap(ConcurrentHashMap<Integer, ClientChannel> channelMap) {
+        ClientChannel.channelMap = channelMap;
     }
 
     @Override
@@ -35,12 +40,10 @@ public class ClientChannel extends Thread {
                 sendToClient("Задайте ник: ");
                 inputMsg = in.readLine();
             } while (inputMsg == null || inputMsg.isEmpty());
-
             name = inputMsg;
             sendToClient(String.format("Привет, %s, добро пожаловать!", name));
-
             date = new Date();
-            for (ClientChannel client : Server.getChannelMap().values()) {
+            for (ClientChannel client : channelMap.values()) {
                 client.sendToClient("***" + name + " присоединился к чату.***");
             }
             logger.log("[INFO]", date, name + " присоединился к чату.");
@@ -50,20 +53,22 @@ public class ClientChannel extends Thread {
                 while (inputMsg == null) {
                     inputMsg = in.readLine();
                 }
+
                 if (inputMsg.equalsIgnoreCase(STOP)) {
                     date = new Date();
-                    for (ClientChannel client : Server.getChannelMap().values()) {
+                    for (ClientChannel client : channelMap.values()) {
                         if (client != this) {
                             client.sendToClient("***" + name + " покинул чат.***");
                         }
                     }
                     logger.log("[INFO]", date, " " + name + " покинул чат.");
                     out.println(ServerCommand.STOP.toString());
-                    Server.getChannelMap().remove(id);
+                    channelMap.remove(id);
                     break;
                 }
+
                 date = new Date();
-                for (ClientChannel client : Server.getChannelMap().values()) {
+                for (ClientChannel client : channelMap.values()) {
                     if (client != this) {
                         client.sendToClient(dataF.format(date) + " " + name + ": " + inputMsg);
                     }
@@ -76,7 +81,6 @@ public class ClientChannel extends Thread {
             try {
                 in.close();
                 out.close();
-                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
