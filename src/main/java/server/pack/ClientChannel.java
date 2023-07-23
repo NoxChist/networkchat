@@ -36,11 +36,7 @@ public class ClientChannel extends Thread {
         Date date;
         try {
             ServerLogger logger = ServerLogger.getInstance();
-            do {
-                sendToClient("Задайте ник: ");
-                inputMsg = in.readLine();
-            } while (inputMsg == null || inputMsg.isEmpty());
-            name = inputMsg;
+            name = in.readLine();
             sendToClient(String.format("Привет, %s, добро пожаловать!", name));
             date = new Date();
             for (ClientChannel client : channelMap.values()) {
@@ -61,7 +57,7 @@ public class ClientChannel extends Thread {
                             client.sendToClient("***" + name + " покинул чат.***");
                         }
                     }
-                    logger.log("[INFO]", date, " " + name + " покинул чат.");
+                    logger.log("[INFO]", date, name + " покинул чат.");
                     out.println(ServerCommand.STOP.toString());
                     channelMap.remove(id);
                     break;

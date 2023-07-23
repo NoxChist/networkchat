@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Client {
     private static final String STOP = "/exit";
     private static String path = "src/main/resources/client";
-    private static String settingsFileName = "settings.csv";
+    private static String settingsFileName = "settings.json";
     ////////////////////////////////////////////////////////
     private ClientLogger logger;
     private ClientSettings settings;
@@ -22,19 +22,25 @@ public class Client {
     private Scanner scanner;
     private PrintWriter out;
     private BufferedReader in;
+    private String name = null;
     AtomicBoolean onLine;
 
     public Client() throws IOException {
-        settings = ClientSettings.getSettingsFromCsv(path, settingsFileName);
+        settings = ClientSettings.getSettingsFromJson(path, settingsFileName);
         scanner = new Scanner(System.in);
         clientSocket = new Socket(settings.getHost(), settings.getPort());
         onLine = new AtomicBoolean(true);
         logger = new ClientLogger();
+
     }
 
-    public void start() {
-        new ReadMsg().start();
+    public void start() throws IOException {
+        System.out.print("Задайте ник: ");
+        while (name == null || name.isEmpty()) {
+            name = scanner.nextLine();
+        }
         new WriteMsg().start();
+        new ReadMsg().start();
     }
 
     private class ReadMsg extends Thread {
@@ -43,8 +49,6 @@ public class Client {
             String msg;
             try {
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                System.out.println(in.readLine());
-                System.out.println(in.readLine());
                 while (onLine.get()) {
                     msg = in.readLine();
                     if (msg != null && msg.equals(ServerCommand.STOP.toString())) {
@@ -76,10 +80,12 @@ public class Client {
         public void run() {
             try {
                 out = new PrintWriter(clientSocket.getOutputStream(), true);
-                out.println(scanner.nextLine());
+                out.println(name);
                 while (onLine.get()) {
                     String userMsg;
-                    userMsg = scanner.nextLine();
+                    do {
+                        userMsg = scanner.nextLine();
+                    } while (userMsg == null || userMsg.isEmpty());
                     out.println(userMsg);
 
                     logger.log(new Date(), "Вы", userMsg);

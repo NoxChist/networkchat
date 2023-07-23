@@ -40,6 +40,7 @@ public class LoggerTest {
         actualSize = strFromFile.size();
         actualStr = strFromFile.get(0);
         logger.close();
+        Files.deleteIfExists(tempFilePath);
 
         Assertions.assertEquals(expectedSize,actualSize);
         Assertions.assertEquals(fileLogStrExpectation,actualStr);
@@ -70,5 +71,4 @@ public class LoggerTest {
         Assertions.assertEquals(fileLogStrExpectation,actualStr1);
         Assertions.assertEquals(fileLogStrExpectation,actualStr2);
     }
-
 }

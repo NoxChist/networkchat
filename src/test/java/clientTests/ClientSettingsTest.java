@@ -2,19 +2,26 @@ package clientTests;
 
 import client.pack.ClientSettings;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ClientSettingsTest {
 
-    @ParameterizedTest
-    @CsvFileSource(resources = "/clientTestDir/clientTestSettings.csv")
-    public void getSettingsFromCsvTest(String expectedHost, int expectedPort) {
-        String resultHost;
-        int resultPort;
+    @Test
+    public void getSettingsFromJsonTest() throws IOException {
+        String path ="src/test/resources/clientTestDir", fileName ="clientTestSettings.json";
         ClientSettings settings;
+        String expectedHost = "ClientSettingsTest", resultHost;
+        int expectedPort = 1234, resultPort;
+        String jsonStr = String.format("{\"host\":\"%s\",\"port\":%d}",expectedHost,expectedPort);
+        Files.writeString(Path.of(path,fileName),jsonStr, StandardCharsets.UTF_8);
 
-        settings = ClientSettings.getSettingsFromCsv("src/test/resources/clientTestDir", "clientTestSettings.csv");
+
+        settings = ClientSettings.getSettingsFromJson(path, fileName);
         resultHost = settings.getHost();
         resultPort = settings.getPort();
 

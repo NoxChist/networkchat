@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
     private static String path = "src/main/resources/server";
-    private static String settingsFileName = "settings.csv";
+    private static String settingsFileName = "settings.json";
     ////////////////////////////////////////////////////////
     private ServerSettings settings;
     private ServerSocket server;
@@ -17,7 +17,7 @@ public class Server {
     private ConcurrentHashMap<Integer, ClientChannel> channelMap;
 
     public Server() {
-        settings = ServerSettings.getSettingsFromCsv(path, settingsFileName);
+        settings = ServerSettings.getSettingsFromJson(path, settingsFileName);
         try {
             server = new ServerSocket(settings.getPort());
             cnt = 0;

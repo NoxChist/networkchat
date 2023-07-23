@@ -10,8 +10,6 @@ import java.nio.file.Path;
 import java.time.Year;
 import java.util.Date;
 
-import static org.mockito.Mockito.mock;
-
 public class ServerLoggerTest {
     @Test
     public void getInstanceTest() throws IOException {
@@ -38,6 +36,4 @@ public class ServerLoggerTest {
 
         Assertions.assertEquals(expectedStr,actualStr);
     }
-
-
 }

@@ -1,44 +1,38 @@
 package client.pack;
 
-import tools.CsvParser;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class ClientSettings {
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_PORT = 8085;
-    private static final String[] COLUMN_MAPPING = {"host", "port"};
 
     private String host;
     private int port;
 
-    public ClientSettings() {
-    }
-
     public String getHost() {
         return host;
     }
-
     public int getPort() {
         return port;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public static ClientSettings getSettingsFromCsv(String path, String fileName) {
-        File file = new File(path, fileName);
-        CsvParser<ClientSettings> parser = new CsvParser<>(file);
-        List<ClientSettings> tempList = parser.parse(ClientSettings.class, COLUMN_MAPPING);
-        if (!tempList.isEmpty() && tempList != null) {
-            return tempList.get(0);
+    public static ClientSettings getSettingsFromJson(String path, String fileName){
+        File jsonFile =new File(path, fileName);
+        ClientSettings settings = null;
+        if(jsonFile.exists()&&jsonFile.isFile()){
+            try{
+                String jsonStr = Files.readString(jsonFile.toPath());
+                GsonBuilder builder = new GsonBuilder();
+                Gson gson = builder.create();
+                settings = gson.fromJson(jsonStr,ClientSettings.class);
+            }catch(IOException e){
+            }
         }
-        return null;
+        return settings;
     }
 }
